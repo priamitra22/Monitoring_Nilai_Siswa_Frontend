@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import toast from 'react-hot-toast'
-import { LaporanResmiService } from '../../../../services/Guru/laporanResmi/LaporanResmiService'
+import { LaporanResmiService } from '../../../../services/Guru/laporanresmi/LaporanResmiService'
 import axios from 'axios'
 import { API_URL } from '../../../../services/api'
 
