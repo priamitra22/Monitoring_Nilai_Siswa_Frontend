@@ -1,0 +1,163 @@
+import { FaComments, FaPaperPlane, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa'
+import { formatTime, getInitials } from '../config/utils'
+
+/**
+ * ChatArea Component
+ * Display chat messages and input for selected conversation
+ */
+export default function ChatArea({
+  selectedConversation,
+  messages,
+  messageInput,
+  isSending,
+  isLoadingMessages,
+  messagesEndRef,
+  onSendMessage,
+  onMessageInputChange,
+  onBackToList,
+}) {
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (messageInput.trim() && !isSending && !isLoadingMessages && messageInput.length <= 1000) {
+      onSendMessage(e)
+    }
+  }
+  // No conversation selected
+  if (!selectedConversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <FaComments className="text-6xl text-gray-300 mx-auto mb-4" />
+          <p className="text-lg">Pilih percakapan untuk memulai chat</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-full w-full overflow-hidden">
+      {/* Warning Banner - Jika guru tidak mengampu lagi */}
+      {selectedConversation.is_guru_still_mengampu === false && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 flex-shrink-0">
+          <div className="flex items-center gap-2 text-yellow-800">
+            <FaExclamationTriangle className="text-sm flex-shrink-0" />
+            <p className="text-xs">
+              <strong>Peringatan:</strong> Guru ini tidak lagi mengampu anak Anda di tahun ajaran saat ini.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Header */}
+      <div className="p-3 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          {/* Back Button - Only show on mobile */}
+          {onBackToList && (
+            <button
+              onClick={onBackToList}
+              className="md:hidden p-1.5 hover:bg-gray-200 rounded-full transition-colors"
+              aria-label="Kembali ke daftar chat"
+            >
+              <FaArrowLeft className="text-gray-600 text-sm" />
+            </button>
+          )}
+          <div className="w-9 h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            {getInitials(selectedConversation.guru_nama)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-gray-900 truncate">
+              {selectedConversation.guru_nama}
+            </h3>
+            {selectedConversation.tahun_ajaran && (
+              <p className="text-xs text-gray-500">
+                {selectedConversation.tahun_ajaran} - Semester {selectedConversation.semester}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
+        {isLoadingMessages ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-gray-500">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600 mx-auto mb-3"></div>
+              Memuat pesan...
+            </div>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-gray-500">
+              <p className="text-sm">Belum ada pesan</p>
+              <p className="text-xs text-gray-400 mt-2">Mulai percakapan dengan guru</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {messages.map((msg) => {
+              const isOwnMessage = msg.sender_role === 'ortu'
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[75%] ${isOwnMessage ? 'order-2' : 'order-1'}`}>
+                    {!isOwnMessage && (
+                      <p className="text-xs text-gray-600 mb-1 ml-1">{msg.sender_nama}</p>
+                    )}
+                    <div
+                      className={`px-3 py-2 rounded-lg ${
+                        isOwnMessage
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-white text-gray-900 border border-gray-200'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
+                    </div>
+                    <p
+                      className={`text-xs text-gray-500 mt-0.5 ${
+                        isOwnMessage ? 'text-right mr-1' : 'ml-1'
+                      }`}
+                    >
+                      {formatTime(msg.created_at)}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {/* Message Input */}
+      <div className="p-2 border-t border-gray-200 bg-white flex-shrink-0">
+        <form onSubmit={handleSubmit} className="flex gap-1.5 items-center">
+          <textarea
+            placeholder="Ketik pesan..."
+            value={messageInput}
+            onChange={(e) => onMessageInputChange(e.target.value)}
+            disabled={isSending}
+            rows={1}
+            maxLength={1000}
+            className="flex-1 px-2.5 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none max-h-[80px] overflow-y-auto"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSubmit(e)
+              }
+            }}
+          />
+          <button
+            type="submit"
+            disabled={!messageInput.trim() || isSending}
+            className="flex-shrink-0 w-9 h-9 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+          >
+            <FaPaperPlane className="text-white text-xs" />
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
