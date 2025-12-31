@@ -1,5 +1,3 @@
-// src/features/guru/absensi/hooks/useRekapAbsensi.js
-
 import { useState, useCallback, useMemo } from 'react';
 import { AbsensiService } from '../../../../services/Guru/absensi/AbsensiService';
 import toast from 'react-hot-toast';
@@ -22,7 +20,7 @@ export const useRekapAbsensi = (kelasId) => {
   // Load rekap data (with specific dates)
   const loadRekapData = useCallback(async (startDate, endDate) => {
     if (!kelasId) return;
-    
+
     setIsLoading(true);
     try {
       const response = await AbsensiService.getRekapAbsensi(
@@ -30,10 +28,10 @@ export const useRekapAbsensi = (kelasId) => {
         startDate,
         endDate
       );
-      
+
       // Map API response to frontend format
       const apiData = response.data;
-      
+
       const rekapSiswa = apiData.rekap.map(siswa => ({
         siswa_id: siswa.siswa_id,
         nisn: siswa.nisn,
@@ -45,16 +43,16 @@ export const useRekapAbsensi = (kelasId) => {
         total_kehadiran: siswa.total_kehadiran,
         persentase_hadir: siswa.persentase_kehadiran
       }));
-      
+
       setRekapData(rekapSiswa);
-      
+
       // Set periode with total_pertemuan
       setPeriode({
         start_date: apiData.periode.tanggal_mulai,
         end_date: apiData.periode.tanggal_akhir,
         total_pertemuan: apiData.periode.total_pertemuan
       });
-      
+
       // Set summary statistics from API response
       // Backend provides: total_hadir, total_sakit, total_izin, total_alpha
       const newSummary = {
@@ -66,12 +64,12 @@ export const useRekapAbsensi = (kelasId) => {
       setSummary(newSummary);
     } catch (error) {
       console.error('Error loading rekap data:', error);
-      
+
       // Suppress validation errors (already handled by HTML5 datepicker)
       const errorMessage = error.response?.data?.message || '';
-      const isValidationError = errorMessage.toLowerCase().includes('tanggal') || 
-                                errorMessage.toLowerCase().includes('periode');
-      
+      const isValidationError = errorMessage.toLowerCase().includes('tanggal') ||
+        errorMessage.toLowerCase().includes('periode');
+
       if (!isValidationError) {
         // Only show non-validation errors
         if (error.response?.data?.message) {
@@ -82,7 +80,7 @@ export const useRekapAbsensi = (kelasId) => {
       } else {
         console.log('⚠️ Validation error suppressed:', errorMessage);
       }
-      
+
       setRekapData([]);
       setSummary({
         total_hadir: 0,

@@ -125,14 +125,10 @@ export default function Catatan() {
       setIsDeleteModalOpen(false)
       setCatatanToDelete(null)
 
-      // Show success message using browser alert (not toast)
-      setTimeout(() => {
-        alert('✓ Catatan berhasil dihapus')
-      }, 100)
+      toast.success('Catatan berhasil dihapus')
     } catch (error) {
       console.error('Error deleting catatan:', error)
 
-      // Show error message using browser alert (not toast)
       let errorMessage = 'Gagal menghapus catatan'
 
       if (error.response?.status === 403) {
@@ -144,7 +140,7 @@ export default function Catatan() {
         errorMessage = error.response.data.message
       }
 
-      alert('✗ ' + errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsDeleting(false)
     }
