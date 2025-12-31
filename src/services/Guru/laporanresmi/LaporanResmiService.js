@@ -56,9 +56,10 @@ export const LaporanResmiService = {
     let filename = `Laporan_${id}.pdf`
 
     if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i)
-      if (filenameMatch && filenameMatch[1]) {
-        filename = filenameMatch[1]
+      // Match filename with or without quotes
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=(['\"]?)([^'\";\n]*)\1/)
+      if (filenameMatch && filenameMatch[2]) {
+        filename = filenameMatch[2].trim()
       }
     }
 
